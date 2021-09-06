@@ -8,12 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
-
-#ifdef _DEBUG
-#define dbgf printf
-#else
-#define dbgf
-#endif
+#include "../Common/commondefs.h"
 
 typedef int value_t;
 #define VALUE_FMT "%d"
