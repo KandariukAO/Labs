@@ -1,20 +1,20 @@
-п»ї// Р›Р°Р±РѕСЂР°С‚РѕСЂРЅР°СЏ СЂР°Р±РѕС‚Р° #1, РІР°СЂРёР°РЅС‚ 6, РљР°РЅРґР°СЂСЋРє РђСЂС‚РµРј, Рђ-16-20
+// Лабораторная работа #1, вариант 9, Кандарюк Артем, А-16-20
+// Вариация 1
+//
+// Три массива.
+// Определить в каком массиве больше произведение элементов, не попадающих в заданный диапазон.
+// Если в двух или трёх массивах произведения совпадают, вывести соответствующее сообщение.
 
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdio>
-#include <cerrno>
-#include <ctype.h>
-#include <cstdlib>
-#include <cstring>
-#include <cassert>
 #include "../Common/commondefs.h"
 
 typedef int value_t;
 #define VALUE_FMT "%d"
 
 const int MAX_INPUT_ARRAY_LENGTH = 100;
-const int CMD_ARGS_OFFSET = 1;
+const int CMD_ARGS_OFFSET = 2;
 const int ARRAYS_COUNT = 3;
 
 struct Array
@@ -23,183 +23,197 @@ struct Array
     int     Length;
 };
 
-// Windows passes us the path to our executable as the first argument. We ignore it.
-int ActualCmdArgIndex(int userIndex)
+int MainOne(int argc, char* argv[])
 {
-    return userIndex + 1;
-}
+    FILE* input = stdin;
+    Array arrays[ARRAYS_COUNT]{};
+    bool  error = false;
 
-void AnalyzeArrays(Array arrays[], value_t upperBound);
-void ParseArrays(FILE* inputFile, Array arrays[]);
-void ParseLine(FILE* inputFile, Array* array, const char** errorMessage);
-
-int main(int argc, char* argv[])
-{
-    int maxArgIndex = argc - 1;
-
-    if (maxArgIndex < ActualCmdArgIndex(0))
-    {
-        fprintf(stderr, "Path to the input file must be provided as the first argument!");
-        return -1;
-    }
-
-    if (maxArgIndex < ActualCmdArgIndex(1))
-    {
-        fprintf(stderr, "The upper bound to compare against must be provided as the second argument!");
-        return -2;
-    }
-
+    value_t lowerBound;
     value_t upperBound;
-    if (sscanf(argv[ActualCmdArgIndex(1)], VALUE_FMT, &upperBound) != 1)
+    if ((argc < (CMD_ARGS_OFFSET + 2)) ||
+        (sscanf(argv[CMD_ARGS_OFFSET], VALUE_FMT, &lowerBound) != 1) ||
+        (sscanf(argv[CMD_ARGS_OFFSET + 1], VALUE_FMT, &upperBound) != 1) ||
+        (lowerBound > upperBound))
     {
-        fprintf(stderr, "Failed to parse the upper bound from '%s'!", argv[ActualCmdArgIndex(1)]);
-        return -3;
-    }
-    dbgf("The upper bound is: " VALUE_FMT "\n", upperBound);
-
-    const char* inputFilePath = argv[ActualCmdArgIndex(0)];
-    FILE* inputFile = fopen(inputFilePath, "r");
-
-    if (inputFile == nullptr)
-    {
-        perror("Error opening the input file");
-        return errno;
-    }
-
-    Array arrays[ARRAYS_COUNT];
-    ParseArrays(inputFile, arrays);
-    fclose(inputFile);
-
-    AnalyzeArrays(arrays, upperBound);
-}
-
-void AnalyzeArrays(Array arrays[], value_t upperBound)
-{
-    value_t upperMaximums[ARRAYS_COUNT];
-    value_t sentinel = upperBound;
-
-    dbgf("Displaying arrays:\n");
-    for (int i = 0; i < ARRAYS_COUNT; i++)
-    {
-        dbgf("Array %d: ", i);
-        Array   array = arrays[i];
-        value_t upperMax = sentinel;
-        for (int j = 0; j < array.Length; j++)
-        {
-            value_t value = array.Values[j];
-
-            if ((value < upperBound) && ((value > upperMax) || (upperMax == sentinel)))
-            {
-                upperMax = value;
-            }
-
-            dbgf(VALUE_FMT " ", value);
-        }
-
-        upperMaximums[i] = upperMax;
-
-        dbgf("\n");
-    }
-
-    struct Result
-    {
-        int     ArrayIndex;
-        value_t Value;
-    };
-
-    int    resultCount = 0;
-    Result results[ARRAYS_COUNT];
-    for (int i = 0; i < ARRAYS_COUNT; i++)
-    {
-        value_t value = upperMaximums[i];
-        if (value != sentinel)
-        {
-            if (resultCount > 0)
-            {
-                value_t previousValue = results[resultCount - 1].Value;
-                if (value < previousValue)
-                {
-                    results[resultCount] = {i, value};
-                }
-                else if (value == previousValue)
-                {
-                    results[resultCount++] = {i, value};
-                }
-            }
-            else
-            {
-                results[resultCount++] = {i, value};
-            }
-        }
-    }
-
-    if (resultCount != 0)
-    {
-        for (int i = 0; i < resultCount; i++)
-        {
-            Result result = results[i];
-            printf(VALUE_FMT " is the maximal value less than " VALUE_FMT " in array %d\n",
-                result.Value, upperBound, result.ArrayIndex);
-        }
+        error = true;
+        fprintf(stderr, "Lower/upper bounds are invalid or not parseable!");
     }
     else
     {
-        printf("Found no values less than " VALUE_FMT " in the supplied arrays :(\n", upperBound);
-    }
-}
+        dbgf("Lower bound is " VALUE_FMT "\n", lowerBound);
+        dbgf("Upper bound is " VALUE_FMT "\n", upperBound);
 
-void ParseArrays(FILE* inputFile, Array arrays[])
-{
-    const char* errorMessage = nullptr;
-    for (int i = 0; i < ARRAYS_COUNT; i++)
-    {
-        dbgf("Parsing line %d...\n", i);
-
-        ParseLine(inputFile, &arrays[i], &errorMessage);
-        if (errorMessage != nullptr)
+        for (int i = 0; i < ARRAYS_COUNT; i++)
         {
-            fprintf(stderr, "%s\n", errorMessage);
-            break;
-        }
+            dbgf("Parsing line %d...\n", i);
 
-        dbgf("Successfully parsed %d values\n", arrays[i].Length);
-    }
-}
-
-void ParseLine(FILE* inputFile, Array* array, const char** errorMessage)
-{
-    int length = 0;
-    while (!feof(inputFile))
-    {
-        value_t value;
-        int     parse = fscanf(inputFile, VALUE_FMT "%*[\x20]", &value);
-
-        if (parse == 1)
-        {
-            if (length >= MAX_INPUT_ARRAY_LENGTH)
+            Array* array  = &arrays[i];
+            int    length = 0;
+            while (!feof(input) && !error)
             {
-                *errorMessage = "Too many values in the input file!";
-                break;
+                value_t value;
+                int     parse = fscanf(input, VALUE_FMT "%*[\x20]", &value);
+
+                if (parse == 1)
+                {
+                    if (length >= MAX_INPUT_ARRAY_LENGTH)
+                    {
+                        error = true;
+                        fprintf(stderr, "Too many values in the input file!");
+                    }
+                    else
+                    {
+                        array->Values[length++] = value;
+                    }
+                }
+
+                if (!error)
+                {
+                    int nextChar = getc(input);
+                    if ((nextChar == '\n'))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        ungetc(nextChar, input);
+                    }
+                }
             }
 
-            array->Values[length++] = value;
+            if (length == 0)
+            {
+                error = true;
+                fprintf(stderr, "Failed to find any values!\n");
+            }
+
+            if (!error)
+            {
+                array->Length = length;;
+                dbgf("Successfully parsed %d values\n", length);
+            }
         }
 
-        int nextChar = getc(inputFile);
-        if ((nextChar == '\n'))
+        if (!error)
         {
-            break;
-        }
-        else
-        {
-            ungetc(nextChar, inputFile);
+#ifdef DEBUG
+            dbgf("Displaying arrays:\n");
+            for (int i = 0; i < ARRAYS_COUNT; i++)
+            {
+                dbgf("Array %d: ", i);
+                Array* array = &arrays[i];
+                for (int j = 0; j < array->Length; j++)
+                {
+                    dbgf(VALUE_FMT " ", array->Values[j]);
+                }
+                dbgf("\b\n");
+            }
+#endif // DEBUG
+
+            struct Result
+            {
+                int     ArrayIndex;
+                value_t Value;
+            };
+
+            // First, find what values our arrays have.
+            const int INVALID_INDEX = -1;
+            Result    results[ARRAYS_COUNT]{};
+            for (int i = 0; i < ARRAYS_COUNT; i++)
+            {
+                value_t      mulValue   = 1;
+                const Array& array      = arrays[i];
+                bool         foundValue = false;
+
+                for (int j = 0; j < array.Length; j++)
+                {
+                    value_t value = array.Values[j];
+                    if ((lowerBound <= value) && (value <= upperBound))
+                    {
+                        if (!foundValue)
+                        {
+                            foundValue = true;
+                        }
+
+                        mulValue *= value;
+                    }
+                }
+
+                results[i].ArrayIndex = foundValue ? i : INVALID_INDEX;
+                results[i].Value      = mulValue;
+            }
+
+#ifdef DEBUG
+            dbgf("After first pass of assigning results:\n");
+            for (int i = 0; i < ARRAYS_COUNT; i++)
+            {
+                const Result& result = results[i];
+
+                dbgf("Result for array %d: ", i);
+                if (result.ArrayIndex != INVALID_INDEX)
+                {
+                    dbgf("value is " VALUE_FMT "\n", result.Value);
+                }
+                else
+                {
+                    dbgf("had no valid values\n");
+                }
+            }
+#endif // DEBUG
+
+            // We'll do two simple passes: first find the maximum value,
+            // then invalidate the arrays that have values less than it.
+            value_t maxMulValue;
+            bool    foundValue = false;
+            for (const Result& result : results)
+            {
+                if (result.ArrayIndex != INVALID_INDEX)
+                {
+                    if (!foundValue)
+                    {
+                        foundValue  = true;
+                        maxMulValue = result.Value;
+                    }
+                    else
+                    {
+                        if (result.Value > maxMulValue)
+                        {
+                            maxMulValue = result.Value;
+                        }
+                    }
+                }
+            }
+
+            if (foundValue)
+            {
+                for (Result& result : results)
+                {
+                    if ((result.ArrayIndex != INVALID_INDEX) && (result.Value != maxMulValue))
+                    {
+                        result.ArrayIndex = INVALID_INDEX;
+                    }
+                }
+
+                // Finally, display the results.
+                printf("The resulting maximum value from array(s) ");
+                for (const Result& result : results)
+                {
+                    if (result.ArrayIndex != INVALID_INDEX)
+                    {
+                        printf("%d, ", result.ArrayIndex);
+                    }
+                }
+                printf("is " VALUE_FMT, maxMulValue);
+            }
+            else
+            {
+                // Just say that we don't have anything...
+                printf("Found no values in the supplied arrays that were between " VALUE_FMT " and " VALUE_FMT,
+                       lowerBound, upperBound);
+            }
         }
     }
 
-    if (length == 0)
-    {
-        *errorMessage = "Failed to find any values!";
-    }
-
-    array->Length = length;;
+    return error ? -1 : 0;
 }
