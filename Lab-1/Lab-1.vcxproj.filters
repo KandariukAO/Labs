@@ -38,5 +38,8 @@
     <ClInclude Include="variants.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Lab-4.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
