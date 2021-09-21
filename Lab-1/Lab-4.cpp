@@ -33,6 +33,7 @@ int MainFour(int argc, char* argv[])
 
         DisplayResults(results, foundValue, maxMulValue, lowerBound, upperBound);
 
+        fclose(input);
         for (const Array& array : arrays)
         {
             delete[] array.Values;

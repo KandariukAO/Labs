@@ -249,7 +249,7 @@ int MainTwo(int argc, char* argv[])
 {
     bool error = false;
 
-    FILE* input;
+    FILE*   input;
     value_t lowerBound;
     value_t upperBound;
     Array   arrays[ARRAYS_COUNT];
@@ -271,6 +271,8 @@ int MainTwo(int argc, char* argv[])
         ResolveResults(results, &foundValue, &maxMulValue);
 
         DisplayResults(results, foundValue, maxMulValue, lowerBound, upperBound);
+
+        fclose(input);
     }
 
     return error ? -1 : 0;
