@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdio>
+#include <cassert>
 
 #ifdef _DEBUG
 #ifndef DEBUG
@@ -30,10 +31,13 @@ inline const char* GetUserArg(int argc, char* argv[], int index)
 }
 
 template <typename T>
-const char* GetPrintfFormat() { return ""; }
+const char* GetPrintfFormat() { assert(!"Unexpected format"); return ""; }
 
 template <>
 inline const char* GetPrintfFormat<int>() { return "%d"; }
+
+template <>
+inline const char* GetPrintfFormat<double>() { return "%lf"; }
 
 template <typename T>
 bool GetUserArg(int argc, char* argv[], int index, T* pValue)

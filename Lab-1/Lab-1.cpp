@@ -11,7 +11,6 @@ typedef int value_t;
 
 const int MAX_INPUT_ARRAY_LENGTH = 100;
 const int ARRAYS_COUNT           = 3;
-const int CMD_ARGS_OFFSET        = 1;
 
 struct Array
 {
@@ -21,9 +20,9 @@ struct Array
 
 int main(int argc, char* argv[])
 {
-    const int LOWER_BOUND_ARG_IDX = CMD_ARGS_OFFSET;
-    const int UPPER_BOUND_ARG_IDX = CMD_ARGS_OFFSET + 1;
-    const int INPUT_FILE_ARG_IDX  = CMD_ARGS_OFFSET + 2;
+    const int LOWER_BOUND_ARG_IDX = CMD_USER_ARGS_OFFSET;
+    const int UPPER_BOUND_ARG_IDX = CMD_USER_ARGS_OFFSET + 1;
+    const int INPUT_FILE_ARG_IDX  = CMD_USER_ARGS_OFFSET + 2;
 
     value_t lowerBound;
     value_t upperBound;

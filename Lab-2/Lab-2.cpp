@@ -6,7 +6,6 @@
 #include <cstring>
 #include <cstdio>
 
-const int CMD_ARGS_OFFSET = 1;
 const int MAX_WIDTH       = 20;
 const int MAX_HEIGHT      = 20;
 const int MATRIX_COUNT    = 2;
@@ -135,7 +134,7 @@ int main(int argc, char* argv[])
     for (int i = 0; i < MATRIX_COUNT; i++)
     {
         const char* failureReason = nullptr;
-        if (!ConstructMatrix(argc, argv, CMD_ARGS_OFFSET + i, &matrices[i], &failureReason))
+        if (!ConstructMatrix(argc, argv, CMD_USER_ARGS_OFFSET + i, &matrices[i], &failureReason))
         {
             fprintf(stderr, "Failed to construct matrix %d: %s\n", i, failureReason);
             return -1;
