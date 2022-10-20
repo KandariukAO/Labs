@@ -1,55 +1,46 @@
-﻿// Лабораторная работа #2, вариант 10, Кандарюк Артем, А-16-21
-
 #include "../Common/commondefs.h"
+#include "List.h"
 
 #include <cstdlib>
-#include <cstring>
-#include <cstdio>
 
-const int MAX_WIDTH       = 20;
-const int MAX_HEIGHT      = 20;
-const int MATRIX_COUNT    = 2;
+const int MATRIX_COUNT = 2;
+
+typedef List<int> Row;
 
 struct Matrix
 {
-    int Height;
-    int Width;
-    int Rows[MAX_HEIGHT][MAX_WIDTH];
+    List<Row> Rows;
+
+    int GetHeight() const
+    {
+        return Rows.Count();
+    }
+
+    int GetWidth() const
+    {
+        assert(GetHeight() != 0);
+        return Rows[0].Count();
+    }
 };
 
 bool ParseMatrix(FILE* input, Matrix* matrix, const char** pFailureReason)
 {
-    int width  = -1;
-    int height = 0;
-
     while (!feof(input))
     {
-        int rowWidth = 0;
-
+        Row row;
         int value;
         while (fscanf(input, "%d", &value) == 1)
         {
-            matrix->Rows[height][rowWidth++] = value;
+            row.Add(value);
         }
 
-        if (rowWidth == 0)
+        if (row.Count() == 0)
         {
             *pFailureReason = "row width is zero / the row was not parseable";
             return false;
         }
 
-        if (rowWidth >= MAX_WIDTH)
-        {
-            *pFailureReason = "row width is too large";
-            return false;
-        }
-
-        if (width == -1)
-        {
-            width = rowWidth;
-        }
-
-        if (width != rowWidth)
+        if ((matrix->GetHeight() != 0) && (row.Count() != matrix->GetWidth()))
         {
             *pFailureReason = "rows do not all have the same width";
             return false;
@@ -62,30 +53,28 @@ bool ParseMatrix(FILE* input, Matrix* matrix, const char** pFailureReason)
             return false;
         }
 
-        height++;
+        matrix->Rows.Add(std::move(row));
     }
 
-    if (width != height)
+    if (matrix->GetWidth() != matrix->GetHeight())
     {
         *pFailureReason = "width not equal to height";
         return false;
     }
-
-    matrix->Height = height;
-    matrix->Width  = width;
 
     return true;
 }
 
 bool ConstructMatrix(int argc, char* argv[], int argIdx, Matrix* matrix, const char** pFailureReason)
 {
-    if (argIdx > (argc - 1))
+    const char* inputFilePath = GetUserArg(argc, argv, argIdx);
+    if (inputFilePath == nullptr)
     {
-        *pFailureReason = "argument not provided";
+        *pFailureReason = "input file path not provided";
         return false;
     }
 
-    FILE* inputFile = fopen(argv[argIdx], "r");
+    FILE* inputFile = fopen(inputFilePath, "r");
     if (inputFile == nullptr)
     {
         *pFailureReason = strerror(errno);
@@ -102,9 +91,9 @@ bool ConstructMatrix(int argc, char* argv[], int argIdx, Matrix* matrix, const c
 
 bool MatrixHasZeroElements(Matrix* matrix)
 {
-    for (int y = 0; y < matrix->Height; y++)
+    for (int y = 0; y < matrix->GetHeight(); y++)
     {
-        for (int x = 0; x < matrix->Width; x++)
+        for (int x = 0; x < matrix->GetWidth(); x++)
         {
             if (matrix->Rows[y][x] == 0)
             {
@@ -116,25 +105,25 @@ bool MatrixHasZeroElements(Matrix* matrix)
     return false;
 }
 
-double FindMean(int row[], int width)
+double FindMean(const Row& row)
 {
     int sum = 0;
-    for (int x = 0; x < width; x++)
+    for (size_t x = 0; x < row.Count(); x++)
     {
         sum += row[x];
     }
 
-    return (double)sum / width;
+    return (double)sum / row.Count();
 }
 
-int main(int argc, char* argv[])
+int MatricesImpl(int argc, char* argv[])
 {
     Matrix matrices[MATRIX_COUNT];
 
     for (int i = 0; i < MATRIX_COUNT; i++)
     {
         const char* failureReason = nullptr;
-        if (!ConstructMatrix(argc, argv, CMD_USER_ARGS_OFFSET + i, &matrices[i], &failureReason))
+        if (!ConstructMatrix(argc, argv, i, &matrices[i], &failureReason))
         {
             fprintf(stderr, "Failed to construct matrix %d: %s\n", i, failureReason);
             return -1;
@@ -147,11 +136,11 @@ int main(int argc, char* argv[])
         if (MatrixHasZeroElements(matrix))
         {
             printf("Matrix %d has zero elements...\n", i);
-            for (int y = 0; y < matrix->Height; y++)
+            for (int y = 0; y < matrix->GetHeight(); y++)
             {
-                double mean = FindMean(matrix->Rows[y], matrix->Width);
+                double mean = FindMean(matrix->Rows[y]);
                 printf(" Row %d: ", y);
-                for (int x = 0; x < matrix->Width; x++)
+                for (int x = 0; x < matrix->GetWidth(); x++)
                 {
                     printf("%d, ", matrix->Rows[y][x]);
                 }

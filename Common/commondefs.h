@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cassert>
+#include <cstring>
 
 #ifdef _DEBUG
 #ifndef DEBUG
@@ -18,14 +19,19 @@
 #define dbgf
 #endif
 
+inline bool AreEqual(const char* left, const char* right)
+{
+    return !strcmp(left, right);
+}
+
 const int CMD_USER_ARGS_OFFSET = 1;
 
 inline const char* GetUserArg(int argc, char* argv[], int index)
 {
-	if (argc < (CMD_USER_ARGS_OFFSET + index))
-	{
-		return nullptr;
-	}
+    if (argc < (CMD_USER_ARGS_OFFSET + index))
+    {
+        return nullptr;
+    }
 
     return argv[CMD_USER_ARGS_OFFSET + index];
 }
@@ -42,18 +48,18 @@ inline const char* GetPrintfFormat<double>() { return "%lf"; }
 template <typename T>
 bool GetUserArg(int argc, char* argv[], int index, T* pValue)
 {
-	const char* argString = GetUserArg(argc, argv, index);
-	if (argString == nullptr)
-	{
-		return false;
-	}
+    const char* argString = GetUserArg(argc, argv, index);
+    if (argString == nullptr)
+    {
+        return false;
+    }
 
-	T value;
-	if (sscanf(argString, GetPrintfFormat<T>(), &value) != 1)
-	{
-		return false;
-	}
+    T value;
+    if (sscanf(argString, GetPrintfFormat<T>(), &value) != 1)
+    {
+        return false;
+    }
 
-	*pValue = value;
-	return true;
+    *pValue = value;
+    return true;
 }
